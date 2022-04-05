@@ -1,14 +1,63 @@
 
 import argparse
-import os
 import xml.etree.ElementTree as ET
-from pathlib import Path, PurePosixPath
 import math
 import cv2
 import numpy as np
 
 import json
-import sys
+
+###############################################################################
+# START
+# code taken from https://github.com/NVlabs/instant-ngp
+#Copyright (c) 2022, NVIDIA CORPORATION. All rights reserved.
+def closest_point_2_lines(oa, da, ob, db): # returns point closest to both rays of form o+t*d, and a weight factor that goes to 0 if the lines are parallel
+	da = da / np.linalg.norm(da)
+	db = db / np.linalg.norm(db)
+	c = np.cross(da, db)
+	denom = np.linalg.norm(c)**2
+	t = ob - oa
+	ta = np.linalg.det([t, db, c]) / (denom + 1e-10)
+	tb = np.linalg.det([t, da, c]) / (denom + 1e-10)
+	if ta > 0:
+		ta = 0
+	if tb > 0:
+		tb = 0
+	return (oa+ta*da+ob+tb*db) * 0.5, denom
+
+def central_point(out):
+	# find a central point they are all looking at
+	print("computing center of attention...")
+	totw = 0.0
+	totp = np.array([0.0, 0.0, 0.0])
+	for f in out["frames"]:
+		mf = np.array(f["transform_matrix"])[0:3,:]
+		for g in out["frames"]:
+			mg = g["transform_matrix"][0:3,:]
+			p, w = closest_point_2_lines(mf[:,3], mf[:,2], mg[:,3], mg[:,2])
+			if w > 0.01:
+				totp += p*w
+				totw += w
+	totp /= totw
+	print(totp) # the cameras are looking at totp
+	for f in out["frames"]:
+		f["transform_matrix"][0:3,3] -= totp
+		f["transform_matrix"] = f["transform_matrix"].tolist()
+	return out
+
+def sharpness(imagePath):
+	image = cv2.imread(imagePath)
+	if image is None:
+		print("Image not found:", imagePath)
+		return 0
+	gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+	fm = cv2.Laplacian(gray, cv2.CV_64F).var()
+	return fm
+
+#END
+###############################################################################
+
+#Copyright (C) 2022, Enrico Philip Ahlers. All rights reserved.
 
 def parse_args():
 	parser = argparse.ArgumentParser(description="convert Agisoft XML export to nerf format transforms.json")
@@ -20,14 +69,7 @@ def parse_args():
 	args = parser.parse_args()
 	return args
 
-def sharpness(imagePath):
-	image = cv2.imread(imagePath)
-	if image is None:
-		print("Image not found:", imagePath)
-		return 0
-	gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-	fm = cv2.Laplacian(gray, cv2.CV_64F).var()
-	return fm
+
 
 def get_calibration(root):
 	for sensor in root[0][0]:
@@ -49,28 +91,8 @@ def reflectY():
 			[0, 0, 1, 0],
 			[0, 0, 0, 1]]
 
-def rotateY(angle):
-	return [[math.cos(angle), 0, math.sin(angle), 0],
-			[0, 1, 0, 0],
-			[-math.sin(angle), 0, math.cos(angle), 0],
-			[0, 0, 0, 1]]
-
 def matrixMultiply(mat1, mat2):
 	return np.array([[sum(a*b for a,b in zip(row, col)) for col in zip(*mat2)] for row in mat1])
-
-def closest_point_2_lines(oa, da, ob, db): # returns point closest to both rays of form o+t*d, and a weight factor that goes to 0 if the lines are parallel
-	da = da / np.linalg.norm(da)
-	db = db / np.linalg.norm(db)
-	c = np.cross(da, db)
-	denom = np.linalg.norm(c)**2
-	t = ob - oa
-	ta = np.linalg.det([t, db, c]) / (denom + 1e-10)
-	tb = np.linalg.det([t, da, c]) / (denom + 1e-10)
-	if ta > 0:
-		ta = 0
-	if tb > 0:
-		tb = 0
-	return (oa+ta*da+ob+tb*db) * 0.5, denom
 
 
 if __name__ == "__main__":
@@ -119,7 +141,7 @@ if __name__ == "__main__":
 				continue
 			if(frame[0].tag != "transform"):
 				continue
-			#print("file_path: "+ "./images/"+frame.get("label")+".jpg")
+			
 			imagePath = IMGFOLDER+frame.get("label")+"." + IMGTYPE
 			current_frame.update({"file_path": imagePath})
 			current_frame.update({"sharpness":sharpness(imagePath)})
@@ -134,23 +156,7 @@ if __name__ == "__main__":
 			frames.append(current_frame)
 		out.update({"frames": frames})
 
-	# find a central point they are all looking at
-		print("computing center of attention...")
-		totw = 0.0
-		totp = np.array([0.0, 0.0, 0.0])
-		for f in out["frames"]:
-			mf = np.array(f["transform_matrix"])[0:3,:]
-			for g in out["frames"]:
-				mg = g["transform_matrix"][0:3,:]
-				p, w = closest_point_2_lines(mf[:,3], mf[:,2], mg[:,3], mg[:,2])
-				if w > 0.01:
-					totp += p*w
-					totw += w
-		totp /= totw
-		print(totp) # the cameras are looking at totp
-		for f in out["frames"]:
-			f["transform_matrix"][0:3,3] -= totp
-			f["transform_matrix"] = f["transform_matrix"].tolist()
+	out = central_point(out)
 
 
 	with open("transforms.json", "w") as f:
