@@ -160,5 +160,5 @@ if __name__ == "__main__":
 	out = central_point(out)
 
 
-	with open(OUTFOLDER + "transforms.json", "w") as f:
+	with open(OUTFOLDER, "w") as f:
 		json.dump(out, f, indent=4)
