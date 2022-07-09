@@ -100,7 +100,7 @@ if __name__ == "__main__":
 	XML_LOCATION = args.xml_in
 	IMGTYPE = args.imgtype
 	IMGFOLDER = args.imgfolder
-	OUTFOLDER = args.out
+	OUTPATH = args.out
 
 	out = dict()
 
@@ -160,5 +160,5 @@ if __name__ == "__main__":
 	out = central_point(out)
 
 
-	with open(OUTFOLDER, "w") as f:
+	with open(OUTPATH, "w") as f:
 		json.dump(out, f, indent=4)
