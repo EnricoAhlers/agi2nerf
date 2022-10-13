@@ -35,7 +35,7 @@ def central_point(out):
 		for g in out["frames"]:
 			mg = g["transform_matrix"][0:3,:]
 			p, w = closest_point_2_lines(mf[:,3], mf[:,2], mg[:,3], mg[:,2])
-			if w > 0.01:
+			if w > 0.0001:
 				totp += p*w
 				totw += w
 	totp /= totw
