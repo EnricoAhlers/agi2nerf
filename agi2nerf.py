@@ -59,7 +59,8 @@ def sharpness(imagePath):
 
 #END
 ###############################################################################
-
+###############################################################################
+# START
 # Copyright (C) 2022, Enrico Philip Ahlers. All rights reserved.
 
 
@@ -242,7 +243,6 @@ if __name__ == "__main__":
 
 	files = Path(IMGFOLDER).glob('*.{}'.format(IMGTYPE))
 	stems = list([f.stem for f in files])
-	# print(list([f.stem for f in files]))
 
 	out = dict()
 
@@ -293,47 +293,6 @@ if __name__ == "__main__":
 		
 		out.update({"frames": frames})
 		
-
-	# 	frames = list()
-	# 	pbar = tqdm(total=len(root[0][2]))
-	    
-	# 	for frame in root[0][2]:
-
-	# 		if not len(frame):
-	# 			continue
-
-	# 		if(frame[0].tag != "transform"):
-	# 			continue
-			
-	# 		id = frame.get("label").split('_')[3]
-	# 		label = [str(f) for f in stems if(id in str(f))]
-			
-	# 		if(len(label) == 0):
-	# 			print('no image found for id: {}'.format(id))
-	# 			continue
-
-	# 		imagePath = IMGFOLDER + '/' + label[0] + "." + IMGTYPE
-	# 		# if(Path(imagePath).is_file() == False):
-	# 		# 	continue
-	# 		# print(imagePath)
-	# 		# print("!!!!!!!!!!!")
-
-	# 		current_frame = dict()
-	# 		current_frame.update({"file_path": imagePath})
-	# 		current_frame.update({"sharpness":sharpness(imagePath)})
-	# 		matrix_elements = [float(i) for i in frame[0].text.split()]
-	# 		transform_matrix = np.array([[matrix_elements[0], matrix_elements[1], matrix_elements[2], matrix_elements[3]], [matrix_elements[4], matrix_elements[5], matrix_elements[6], matrix_elements[7]], [matrix_elements[8], matrix_elements[9], matrix_elements[10], matrix_elements[11]], [matrix_elements[12], matrix_elements[13], matrix_elements[14], matrix_elements[15]]])
-			
-	# 		#swap axes
-	# 		transform_matrix = transform_matrix[[2,0,1,3],:]
-
-	# 		#reflect z and Y axes
-	# 		current_frame.update({"transform_matrix":matrixMultiply(matrixMultiply(transform_matrix, reflectZ()), reflectY())} )
-			
-	# 		frames.append(current_frame)
-	# 		pbar.update(1)
-	# 	out.update({"frames": frames})
-
 	out = central_point(out)
 
 	with open("transforms.json", "w") as f:
