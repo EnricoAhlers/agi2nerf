@@ -244,6 +244,11 @@ if __name__ == "__main__":
 	files = Path(IMGFOLDER).glob('*.{}'.format(IMGTYPE))
 	stems = list([f.stem for f in files])
 
+	# Check if the files path has images in it
+	if(len(files)==0):
+		print('No images found in folder: {}'.format(IMGFOLDER))
+		exit()
+
 	out = dict()
 
 	aabb_scale = 16
