@@ -1,4 +1,4 @@
-# Agisoft Metashape camera location to NERF conversion tool
+# Agisoft Metashape camera location to NERF conversion tool with per camera intrinsics
 This tool is for use with https://github.com/NVlabs/instant-ngp and allows the use of Agisoft Metashape camera locations. Updated for per camera intrinsic outputs.
 
 ## Installation
