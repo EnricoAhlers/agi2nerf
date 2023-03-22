@@ -264,7 +264,7 @@ if __name__ == "__main__":
 			pbar.update(1)
 
 			if (camera is None) or (sensor is None):
-				print('no camera or sensor found for id: {}'.format(camera['id']))
+				print('no camera or sensor found')
 				continue
 
 			# Check if label is in image folder
