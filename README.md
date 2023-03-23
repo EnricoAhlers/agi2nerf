@@ -5,7 +5,8 @@ This tool is for use with https://github.com/NVlabs/instant-ngp and allows the u
 Copy agi2nerf.py file into instant-ngp\scripts folder
 
 ## Usage
-Use Agisoft Metashape to align cameras
+Use Agisoft Metashape to align cameras.
+
 Export cameras
 ```
 File -> Export -> Export Cameras...
