@@ -11,18 +11,21 @@ Export cameras
 File -> Export -> Export Cameras...
 ```
 
-Save example.xml as Agisoft XML
+Save the XML file exported from Agisoft Metashape into the directory that contains your /imagesfolder.
 
-Create a new example folder in instant-ngp\data\nerf
+Open a shell (CMD, Powershell, Bash, etc.) and navigate to the directory with your XML file and /images folder:
 
-Copy example.xml into instant-ngp\data\nerf\example
-Copy all images used into instant-ngp\data\nerf\example\images
+cd [PATH TO FOLDER]
+
+run the agi2nerf.py on this XML file using the following command, replacing the text in brackets […] with the file names and paths on your machine:
 
 ## Commands
 Example:
 ```
-instant-ngp\data\nerf\example$ python agi2nerf.py --xml_in ./example.xml
+python "[PATH TO iNGP]\agi2nerf.py" --xml_in "[NAME_OF_XML_FILE].xml" --imgfolder .\images
 ```
+The quotes are only required if you have spaces in any of the folder or file names.
+
 
 Arguments:
 
