@@ -103,7 +103,7 @@ def parse_camera(cam):
 		return None
 	
 	# Get the camera label
-	id = cam.get("label").split('_')[3]
+	id = cam.get("label")#.split('_')[3]
 
 	current_camera = dict()
 	current_camera.update({"id":id})
