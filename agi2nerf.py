@@ -230,7 +230,10 @@ def calibration(root):
 
 	sensors = root.findall('.//sensor')
 	cameras = root.findall('.//camera')
-	
+
+	if len(sensors) != len(cameras):
+		print("Warning: Number of sensors and cameras do not match...")
+
 	for (camera, sensor) in zip(cameras, sensors):
 		yield parse_camera(camera), parse_sensor(sensor)
 
