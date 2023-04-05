@@ -102,11 +102,13 @@ def parse_camera(cam):
 	if(cam.find('transform') == None):
 		return None
 	
-	# Get the camera label
-	id = cam.get("label")#.split('_')[3]
+	# Get the camera label and sensor id
+	label = cam.get("label")#.split('_')[3]
+	sensor_id = cam.get("sensor_id")
 
 	current_camera = dict()
-	current_camera.update({"id":id})
+	current_camera.update({"label":label})
+	current_camera.update({"sensor_id":int(sensor_id)})
 	matrix_elements = [float(i) for i in cam[0].text.split()]
 	transform_matrix = np.array([[matrix_elements[0], matrix_elements[1], matrix_elements[2], matrix_elements[3]], [matrix_elements[4], matrix_elements[5], matrix_elements[6], matrix_elements[7]], [matrix_elements[8], matrix_elements[9], matrix_elements[10], matrix_elements[11]], [matrix_elements[12], matrix_elements[13], matrix_elements[14], matrix_elements[15]]])
 	
@@ -119,13 +121,17 @@ def parse_camera(cam):
 	return current_camera
 	
 def parse_sensor(sensor):
+	out = dict()
+
+	# Get the sensor id
+	id = sensor.get("id")
+	out['id'] = int(id)
+
 	# Calibration coefficients and parameters
 	# https://www.agisoft.com/pdf/metashape-pro_1_5_en.pdf
 	# (F, Cx, Cy, B1, B2, K1, K2, K3, K4, P1, P2, P3, P4)
 
 	calib = sensor.find('calibration')
-
-	out = dict()
 
 	if (calib == None):
 		# Calculate the focal if not provided
@@ -230,13 +236,27 @@ def calibration(root):
 
 	sensors = root.findall('.//sensor')
 	cameras = root.findall('.//camera')
+	
+	# print("Found {} sensors and {} cameras".format(len(sensors), len(cameras)))
+	
+	sensors = [parse_sensor(s) for s in sensors]
+	cameras = [parse_camera(c) for c in cameras]
 
-	if len(sensors) != len(cameras):
-		print("Warning: Number of sensors and cameras do not match...")
+	calib = []
 
-	for (camera, sensor) in zip(cameras, sensors):
-		yield parse_camera(camera), parse_sensor(sensor)
+	# Match sensors to cameras
+	#TODO: There's probably a better way to do this...
+	for c in cameras:
+		if not c:
+			continue
 
+		for s in sensors:
+			# print(c['sensor_id'], s['id'])
+			if(c['sensor_id'] == s['id']):
+				calib.append((c, s))
+				break
+	
+	return calib
 
 if __name__ == "__main__":
 	args = parse_args()
@@ -265,6 +285,7 @@ if __name__ == "__main__":
 		# https://github.com/NVlabs/instant-ngp/discussions/797
 
 		pbar = tqdm(total=len(root[0][2]))
+		print(root[0][2])
 
 		frames = []
 
@@ -276,13 +297,14 @@ if __name__ == "__main__":
 				continue
 
 			# Check if label is in image folder
-			label = [str(f) for f in stems if(camera['id'] in str(f))]
+			label = [str(f) for f in stems if(camera['label'] in str(f))]
 
 			if(len(label) == 0):
-				print('no matching label found for id: {}'.format(camera['id']))
+				print('no matching label found for: {}'.format(camera['label']))
 				continue
 
-			del camera['id']
+			del camera['label']
+			del camera['sensor_id']
 
 			imagePath = IMGFOLDER + '/' + label[0] + "." + IMGTYPE
 
