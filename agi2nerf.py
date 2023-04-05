@@ -241,7 +241,7 @@ if __name__ == "__main__":
 	IMGTYPE = args.imgtype
 	IMGFOLDER = args.imgfolder
 
-	files = Path(IMGFOLDER).glob('*.{}'.format(IMGTYPE))
+	files = list(Path(IMGFOLDER).glob('*.{}'.format(IMGTYPE)))
 	stems = list([f.stem for f in files])
 
 	# Check if the files path has images in it
