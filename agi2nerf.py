@@ -4,6 +4,15 @@ import xml.etree.ElementTree as ET
 import math
 import cv2
 import numpy as np
+from copy import deepcopy as dc
+
+# Check if matplotlib is installed
+try:
+	import matplotlib.pyplot as plt
+	_plt = True
+except:
+	print("matplotlib not installed, not plotting")
+	_plt = False
 
 import json
 
@@ -44,13 +53,11 @@ def central_point(out):
 
 	totp /= totw
 	print("The center of attention is:{}".format(totp)) # the cameras are looking at totp
-	
+
 	for f in out["frames"]:
-		tm = np.array(f["transform_matrix"])
-		tm[0:3,3] -= totp
-		f["transform_matrix"] = tm.tolist()
-		# f["transform_matrix"][0:3,3] -= totp
-		# f["transform_matrix"] = f["transform_matrix"].tolist()
+		f["transform_matrix"][0:3,3] -= totp
+		f["transform_matrix"] = f["transform_matrix"].tolist()
+		
 	return out
 
 def sharpness(imagePath):
@@ -256,9 +263,9 @@ def calibration(root):
 			continue
 
 		for s in sensors:
-			# print(c['sensor_id'], s['id'])
 			if(c['sensor_id'] == s['id']):
-				calib.append((c, s))
+				# print(c['sensor_id'], s['id'])
+				calib.append((dc(c), dc(s)))
 				break
 	
 	print("Found {} cameras with calibration data".format(len(calib)))
@@ -311,6 +318,7 @@ if __name__ == "__main__":
 
 			del camera['label']
 			del camera['sensor_id']
+			del sensor['id']
 
 			imagePath = IMGFOLDER + '/' + label[0] + "." + IMGTYPE
 
@@ -328,8 +336,17 @@ if __name__ == "__main__":
 			frames.append(frame)
 		
 		out.update({"frames": frames})
-	
+
 	out = central_point(out)
 
 	with open(args.out, "w") as f:
 		json.dump(out, f, indent=4)
+	
+	if _plt:
+		# 3D plot the points and display them
+		fig = plt.figure()
+		ax = plt.axes(projection='3d')
+		for f in out['frames']:
+			t = np.array(f["transform_matrix"])[0:3,3]
+			ax.scatter3D(t[0], t[1], t[2], c='r')
+		plt.show()
