@@ -41,11 +41,16 @@ def central_point(out):
 			if w > 0.01:
 				totp += p*w
 				totw += w
+
 	totp /= totw
-	print(totp) # the cameras are looking at totp
+	print("The center of attention is:{}".format(totp)) # the cameras are looking at totp
+	
 	for f in out["frames"]:
-		f["transform_matrix"][0:3,3] -= totp
-		f["transform_matrix"] = f["transform_matrix"].tolist()
+		tm = np.array(f["transform_matrix"])
+		tm[0:3,3] -= totp
+		f["transform_matrix"] = tm.tolist()
+		# f["transform_matrix"][0:3,3] -= totp
+		# f["transform_matrix"] = f["transform_matrix"].tolist()
 	return out
 
 def sharpness(imagePath):
@@ -117,7 +122,7 @@ def parse_camera(cam):
 
 	#reflect z and Y axes
 	current_camera.update({"transform_matrix":matrixMultiply(matrixMultiply(transform_matrix, reflectZ()), reflectY())} )
-
+	
 	return current_camera
 	
 def parse_sensor(sensor):
@@ -256,6 +261,8 @@ def calibration(root):
 				calib.append((c, s))
 				break
 	
+	print("Found {} cameras with calibration data".format(len(calib)))
+
 	return calib
 
 if __name__ == "__main__":
@@ -285,7 +292,6 @@ if __name__ == "__main__":
 		# https://github.com/NVlabs/instant-ngp/discussions/797
 
 		pbar = tqdm(total=len(root[0][2]))
-		print(root[0][2])
 
 		frames = []
 
@@ -322,7 +328,7 @@ if __name__ == "__main__":
 			frames.append(frame)
 		
 		out.update({"frames": frames})
-		
+	
 	out = central_point(out)
 
 	with open(args.out, "w") as f:
