@@ -145,7 +145,8 @@ def parse_sensor(sensor):
 
 	calib = sensor.find('calibration')
 
-	if (calib == None):
+	if (calib is None):
+		print("No calibration found for sensor {}".format(id))
 		# Calculate the focal if not provided
 
 		# Get the sensor resolution
@@ -195,12 +196,13 @@ def parse_sensor(sensor):
 
 		fl_x = float(calib.find('f').text)
 		fl_y = fl_x
-		k1 = float(calib.find('k1').text if calib.find('k1') else 0)
-		k2 = float(calib.find('k2').text if calib.find('k2') else 0)
-		p1 = float(calib.find('p1').text if calib.find('p1') else 0)
-		p2 = float(calib.find('p2').text if calib.find('p2') else 0)
-		cx = float(calib.find('cx').text if calib.find('cx') else 0) + w/2
-		cy = float(calib.find('cy').text if calib.find('cy') else 0) + h/2
+		
+		k1 = float(calib.find('k1').text if calib.find('k1') is not None else -1)
+		k2 = float(calib.find('k2').text if calib.find('k2') is not None else -1)
+		p1 = float(calib.find('p1').text if calib.find('p1') is not None else -1)
+		p2 = float(calib.find('p2').text if calib.find('p2') is not None else -1)
+		cx = float(calib.find('cx').text if calib.find('cx') is not None else 0) + w/2
+		cy = float(calib.find('cy').text if calib.find('cy') is not None else 0) + h/2
 
 		camera_angle_x = math.atan(float(w) / (float(fl_x) * 2)) * 2
 		camera_angle_y = math.atan(float(h) / (float(fl_y) * 2)) * 2
