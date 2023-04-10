@@ -197,10 +197,12 @@ def parse_sensor(sensor):
 		fl_x = float(calib.find('f').text)
 		fl_y = fl_x
 		
-		k1 = float(calib.find('k1').text if calib.find('k1') is not None else -1)
-		k2 = float(calib.find('k2').text if calib.find('k2') is not None else -1)
-		p1 = float(calib.find('p1').text if calib.find('p1') is not None else -1)
-		p2 = float(calib.find('p2').text if calib.find('p2') is not None else -1)
+		k1 = float(calib.find('k1').text if calib.find('k1') is not None else 0)
+		k2 = float(calib.find('k2').text if calib.find('k2') is not None else 0)
+		k3 = float(calib.find('k3').text if calib.find('k3') is not None else 0)
+		k4 = float(calib.find('k4').text if calib.find('k4') is not None else 0)
+		p1 = float(calib.find('p1').text if calib.find('p1') is not None else 0)
+		p2 = float(calib.find('p2').text if calib.find('p2') is not None else 0)
 		cx = float(calib.find('cx').text if calib.find('cx') is not None else 0) + w/2
 		cy = float(calib.find('cy').text if calib.find('cy') is not None else 0) + h/2
 
@@ -213,6 +215,8 @@ def parse_sensor(sensor):
 		out.update({"fl_y": fl_y})
 		out.update({"k1": k1})
 		out.update({"k2": k2})
+		out.update({"k3": k3})
+		out.update({"k4": k4})
 		out.update({"p1": p1})
 		out.update({"p2": p2})
 		out.update({"cx": cx})
