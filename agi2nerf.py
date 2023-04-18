@@ -146,7 +146,7 @@ def parse_camera(cam):
 	sensor_id = cam.get("sensor_id")
 
 	current_camera = dict()
-	current_camera['label'] = label
+	current_camera['label'] = str(label)
 	current_camera['sensor_id'] = int(sensor_id)
 	current_camera['transform_matrix'] = parse_xform(cam)
 	
@@ -318,7 +318,7 @@ def calibration(root, stems, _scale=1.0, _no_scale=False, _ignore_images=False):
 
 		if not _ignore_images:
 			# Check if label is in image folder
-			label = [str(f) for f in stems if(camera['label'] in str(f))]
+			label = [str(f) for f in stems if(str(f) in camera['label'])]
 
 			if(len(label) == 0):
 				print('No matching image found for: {}'.format(camera['label']))
