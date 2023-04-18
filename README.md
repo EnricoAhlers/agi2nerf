@@ -27,12 +27,34 @@ python "[PATH TO iNGP]\agi2nerf.py" --xml_in "[NAME_OF_XML_FILE].xml" --imgfolde
 ```
 The quotes are only required if you have spaces in any of the folder or file names.
 
+## Additional command examples
+Disable the agisoft scale and scene orientation
+```
+python "[PATH TO iNGP]\agi2nerf.py" --xml_in "[NAME_OF_XML_FILE].xml" --imgfolder .\images --no_scale --no_scene_orientation
+```
+
+Scale the scene down by 0.01
+```
+python "[PATH TO iNGP]\agi2nerf.py" --xml_in "[NAME_OF_XML_FILE].xml" --imgfolder .\images --scale 0.01
+```
+
+Display the cameras in 3d and set the camera size (for debugging)
+```
+python "[PATH TO iNGP]\agi2nerf.py" --xml_in "[NAME_OF_XML_FILE].xml" --imgfolder .\images --plot --camera_size 1
+```
 
 Arguments:
 
-| Argument    | Default Value   | Description               |
-|-------------|-----------------|---------------------------|
-| --xml_in    | None            | specify xml file location |
-| --out       | transforms.json | specify output file path  |
-| --imgfolder | ./images/       | location of image folder  |
-| --imgtype   | jpg             | ex.: jpg, png, ...        |
+| Argument               | Default Value   | Description                                  |
+|------------------------|-----------------|----------------------------------------------|
+| --xml_in               | None            | specify xml file location                    |
+| --out                  | transforms.json | specify output file path                     |
+| --imgfolder            | ./images/       | location of image folder                     |
+| --imgtype              | jpg             | ex.: jpg, png, ...                           |
+| --aabb_scale           | 16              | sets the aabb scale                          |
+| --no_scene_orientation | False           | disable the agisoft orientation              |
+| --no_scale             | False           | disable the agisoft scale                    |
+| --no_center            | False           | disable the scene centering                  |
+| --plot                 | False           | display the camera positions                 |
+| --camera_size          | 0.1             | the size of the displayed cameras            |
+| --debug_ignore_images  | False           | ignores the input images, for debugging only |
