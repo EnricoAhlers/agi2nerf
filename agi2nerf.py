@@ -88,7 +88,7 @@ def parse_components(xml_root):
 	xml_region = comp.find('region')
 
 	if xml_tform is None:
-		scene = (None, None)
+		scene = (np.eye(4), 1.0)
 	else:
 		rotation = np.array([float(i) for i in xml_tform.find('rotation').text.split()]).reshape(3,3)
 		translation = np.array([float(i) for i in xml_tform.find('translation').text.split()])
@@ -98,12 +98,6 @@ def parse_components(xml_root):
 		mat[:3,:3] = rotation
 		mat[:3,3] = translation
 		# mat = pytr.scale_transform(mat, s_d=scale)
-		
-		if mat is None:
-			mat = np.eye(4)
-		
-		if scale is None:
-			scale = 1.0
 
 		scene = mat, scale
 
