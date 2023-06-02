@@ -98,6 +98,13 @@ def parse_components(xml_root):
 		mat[:3,:3] = rotation
 		mat[:3,3] = translation
 		# mat = pytr.scale_transform(mat, s_d=scale)
+		
+		if mat is None:
+			mat = np.eye(4)
+		
+		if scale is None:
+			scale = 1.0
+
 		scene = mat, scale
 
 	if xml_region is None:
@@ -113,7 +120,7 @@ def parse_components(xml_root):
 
 		region = mat, size
 	
-	print(scene, region)
+	# print(scene, region)
 	return scene, region
 
 
