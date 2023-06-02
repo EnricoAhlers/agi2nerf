@@ -12,6 +12,52 @@ import json
 from tqdm import tqdm
 from pathlib import Path
 
+import sys
+import logging
+import logging.config
+from logging.handlers import RotatingFileHandler
+
+logging.config.dictConfig({
+	'version': 1,
+	'formatters': {
+		'console': {
+			'format': '%(asctime)s | %(levelname)s | %(filename)s : %(lineno)s | >>> %(message)s',
+			'datefmt': '%Y-%m-%d %H:%M:%S'
+		},
+		'file': {
+			'format': '%(asctime)s | %(levelname)s | %(filename)s : %(lineno)s | >>> %(message)s',
+			'datefmt': '%Y-%m-%d %H:%M:%S'
+		}
+	},
+	'handlers': {
+		'console': {
+			'class': 'logging.StreamHandler',
+			'formatter': 'console',
+			'level': 'INFO',
+			'stream': 'ext://sys.stdout'
+		},
+		'file': {
+			'class': 'logging.handlers.RotatingFileHandler',
+			'formatter': 'file',
+			'level': 'DEBUG',
+			'filename': 'agi2nerf.log',
+			'mode': 'a',
+			'maxBytes': 0,
+			'backupCount': 3
+		}
+	},
+	'loggers': {
+		'': {
+			'handlers': ['console', 'file'],
+			'level': 'DEBUG',
+			'propagate': True
+		}
+	}
+})
+
+
+LOGGER = logging.getLogger(__name__)
+
 
 def parse_args():
 	parser = argparse.ArgumentParser(description="convert Agisoft XML export to nerf format transforms.json")
@@ -26,6 +72,9 @@ def parse_args():
 	parser.add_argument("--no_scale", action="store_true", help="DISABLES the scaling of the cameras to the bounding region")
 	parser.add_argument("--no_center", action="store_true", help="DISABLES the centering of the cameras around the computed central point")
 	parser.add_argument("--camera_size", default=0.1, type=float, help="size of the camera in the 3D plot. Does not affect the output.")
+
+	parser.add_argument("--debug", action="store_true", help="ENABLES debug mode. This will print out the logs.")
+	parser.add_argument("--log_level", default="INFO", help="specify the log level. Default is INFO.")
 	
 	parser.add_argument("--debug_ignore_images", action="store_true", help="IGNORES the images in the xml file. For debugging purposes only.")
 	
@@ -113,8 +162,6 @@ def parse_components(xml_root):
 		mat[:3,3] = center
 
 		region = mat, size
-	
-	# print(scene, region)
 	return scene, region
 
 
@@ -168,7 +215,7 @@ def parse_sensor(sensor):
 	calib = sensor.find('calibration')
 
 	if (calib is None):
-		print("No calibration found for sensor {}".format(id))
+		LOGGER.warning("Sensor {} has no calibration".format(id))
 		
 		# Get the sensor resolution
 		res = sensor.find("resolution")
@@ -236,7 +283,14 @@ def parse_sensor(sensor):
 		out["cy"] = cy
 		out["w"] = w
 		out["h"] = h
-		
+	
+	LOGGER.debug("Sensor {} has {}x{} resolution".format(id, w, h))
+	LOGGER.debug("Sensor {} has {}x{} focal length".format(id, fl_x, fl_y))
+	LOGGER.debug("Sensor {} has {}x{} camera angle".format(id, camera_angle_x, camera_angle_y))
+	LOGGER.debug("Sensor {} has {}x{} principal point".format(id, cx, cy))
+	LOGGER.debug("Sensor {} has {}x{} distortion coefficients".format(id, k1, k2))
+	LOGGER.debug("Sensor {} has {}x{} tangential coefficients".format(id, p1, p2))
+	
 	return out
 	
 
@@ -303,8 +357,8 @@ def calibration(root, stems, _scale=1.0, _no_scale=False, _ignore_images=False):
 				calib.append((dc(c), dc(s)))
 				break
 	
-	print("\nFound {} cameras and {} sensors".format(len(cameras), len(sensors)))
-	print("\nFound {} matching cameras and sensors".format(len(calib)))
+	LOGGER.info("Found {} cameras and {} sensors".format(len(cameras), len(sensors)))
+	LOGGER.info("Found {} matching cameras and sensors".format(len(calib)))
 
 	frames = []
 
@@ -314,7 +368,7 @@ def calibration(root, stems, _scale=1.0, _no_scale=False, _ignore_images=False):
 		pbar.update(1)
 
 		if (camera is None) or (sensor is None):
-			print('No camera or sensor found')
+			LOGGER.warning('No camera or sensor found')
 			continue
 
 		if not _ignore_images:
@@ -322,14 +376,18 @@ def calibration(root, stems, _scale=1.0, _no_scale=False, _ignore_images=False):
 			label = [str(f) for f in stems if(str(f) in camera['label'])]
 
 			if(len(label) == 0):
-				print('No matching image found for: {}'.format(camera['label']))
+				LOGGER.warning('No matching image found for: {}'.format(camera['label']))
 				continue
+
+			LOGGER.debug('Found image: {}'.format(label[0]))
 
 			imagePath = IMGFOLDER + '/' + label[0] + "." + IMGTYPE
 
+			LOGGER.debug('Image path: {}'.format(imagePath))
+
 			# Check if image exists
 			if(Path(imagePath).is_file() == False):
-				print('Image not found in path: {}'.format(imagePath))
+				LOGGER.error('Image not found in path: {}'.format(imagePath))
 				continue
 
 			# Set the image path
@@ -345,7 +403,7 @@ def calibration(root, stems, _scale=1.0, _no_scale=False, _ignore_images=False):
 		frames.append(frame)
 	
 	if (region_mat is None) or (region_scale is None):
-		print('No bounding region found')
+		LOGGER.info('No bounding region found')
 		region = None
 	else:
 		if (scene_mat is not None) & (scene_scale is not None):
@@ -360,8 +418,26 @@ def calibration(root, stems, _scale=1.0, _no_scale=False, _ignore_images=False):
 	return frames, region
 
 
+def init_logging(args):
+	# Get handlers from logging config
+	handlers = logging.getLogger().handlers
+
+	if args.debug:
+		for log in handlers:
+			log.setLevel(logging.DEBUG)
+
+	# Get log path from config
+	log_path = Path(handlers[1].baseFilename)
+
+	if log_path.is_file():
+		handlers[1].doRollover()
+
+
 if __name__ == "__main__":
 	args = parse_args()
+
+	init_logging(args)
+
 	XML_LOCATION = args.xml_in
 	IMGTYPE = args.imgtype
 	IMGFOLDER = args.imgfolder
@@ -371,6 +447,7 @@ if __name__ == "__main__":
 
 	# Check if the files path has images in it
 	if(len(files)==0) & (args.debug_ignore_images==False):
+		logging.error('No images found in folder: {}'.format(IMGFOLDER))
 		print('No images found in folder: {}'.format(IMGFOLDER))
 		exit()
 

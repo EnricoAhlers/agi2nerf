@@ -1,6 +1,9 @@
 import numpy as np
 import cv2
 
+import logging
+LOGGER = logging.getLogger(__name__)
+
 # Check if plot libraries are installed
 try:
 	from pytransform3d.plot_utils import plot_box
@@ -38,7 +41,7 @@ def closest_point_2_lines(oa, da, ob, db): # returns point closest to both rays 
 
 def central_point(out):
 	# find a central point they are all looking at
-	print("computing center of attention...")
+	LOGGER.info("computing center of attention...")
 	totw = 0.0
 	totp = np.array([0.0, 0.0, 0.0])
 	for f in out["frames"]:
@@ -50,8 +53,17 @@ def central_point(out):
 				totp += p*w
 				totw += w
 
+	if len(out["frames"]) == 0:
+		LOGGER.error("No frames found when computing center of attention")
+		return totp
+
+	if (totw == 0) and (not totp.any()):
+		LOGGER.error("Center of attention is zero")
+		return totp
+	
 	totp /= totw
-	print("The center of attention is: {}".format(totp)) # the cameras are looking at totp
+	# print("The center of attention is: {}".format(totp)) # the cameras are looking at totp
+	LOGGER.info("The center of attention is: {}".format(totp))
 
 	return totp
 

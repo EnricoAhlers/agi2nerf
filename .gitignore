@@ -1,0 +1,7 @@
+.conda/
+.vscode/
+__test__/
+*.xml
+*.pyc
+*.json
+*.log*
