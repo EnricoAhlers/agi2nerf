@@ -370,10 +370,10 @@ def calibration(root, stems, _scale=1.0, _no_scale=False, _ignore_images=False):
 
 		if not _ignore_images:
 			# Check if label is in image folder
-			label = [str(f) for f in stems if(str(f) in camera['label'])]
+			label = [str(f) for f in stems if(str(f) in camera['label']) or (camera['label'] in str(f))]
 
 			if(len(label) == 0):
-				LOGGER.warning('No matching image found for: {}'.format(camera['label']))
+				LOGGER.warning(f'No matching image found for: {camera["label"]} in {stems}')
 				continue
 
 			LOGGER.debug('Found image: {}'.format(label[0]))
