@@ -13,7 +13,7 @@ try:
 	from matplotlib.widgets import Slider, Button
 	_plt = True
 except ImportError as e:
-	print(e)
+	print("Plotting libraries not found. Skipping plotting.")
 	_plt = False
 
 
