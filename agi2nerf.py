@@ -1,21 +1,6 @@
 
-import argparse
-import xml.etree.ElementTree as ET
-import math
-import numpy as np
-from copy import deepcopy as dc
-
-from utils import agiMat2Nerf, sharpness, central_point, plot, _plt
-
-import json
-
-from tqdm import tqdm
-from pathlib import Path
-
-import sys
 import logging
 import logging.config
-from logging.handlers import RotatingFileHandler
 
 logging.config.dictConfig({
 	'version': 1,
@@ -55,8 +40,20 @@ logging.config.dictConfig({
 	}
 })
 
-
 LOGGER = logging.getLogger(__name__)
+
+import argparse
+import xml.etree.ElementTree as ET
+import math
+import numpy as np
+from copy import deepcopy as dc
+
+from utils import agiMat2Nerf, sharpness, central_point, plot, _plt
+
+import json
+
+from tqdm import tqdm
+from pathlib import Path
 
 
 def parse_args():
