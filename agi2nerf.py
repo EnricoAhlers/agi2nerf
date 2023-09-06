@@ -138,7 +138,11 @@ def parse_components(xml_root):
 	else:
 		rotation = np.array([float(i) for i in xml_tform.find('rotation').text.split()]).reshape(3,3)
 		translation = np.array([float(i) for i in xml_tform.find('translation').text.split()])
-		scale = np.array([float(i) for i in xml_tform.find('scale').text.split()])
+
+		if xml_tform.find('scale'):
+			scale = np.array([float(i) for i in xml_tform.find('scale').text.split()])
+		else:
+			scale = np.array([1.0, 1.0, 1.0])
 
 		mat = np.eye(4)
 		mat[:3,:3] = rotation
