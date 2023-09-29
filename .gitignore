@@ -1,0 +1,8 @@
+.conda/
+.vscode/
+__test__/
+__pycache__/
+*.xml
+*.pyc
+*.json
+*.log*
